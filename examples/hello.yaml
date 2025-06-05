@@ -1,0 +1,5 @@
+pipeline:
+  greet:
+    action: printer:print
+    input:
+      message:  $name
