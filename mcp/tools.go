@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"reflect"
+	"strings"
 
 	iconv "github.com/viant/fluxor-mcp/internal/conv"
 	conv "github.com/viant/fluxor-mcp/mcp/tool/conversion"
@@ -77,8 +78,9 @@ func (s *Service) updateToolRegistryForService(svc types.Service) {
 // serviceToToolEntries converts a single Fluxor service to tool entries.
 func serviceToToolEntries(svc types.Service) []toolEntry {
 	entries := make([]toolEntry, 0, len(svc.Methods()))
+	serviceName := strings.ReplaceAll(svc.Name(), "/", "_")
 	for _, sig := range svc.Methods() {
-		methodName := svc.Name() + "-" + sig.Name
+		methodName := serviceName + "-" + sig.Name
 		var toolMeta mcpschema.Tool
 		var buildErr error
 		// mcpClient request/response types are complex (contain recursive
