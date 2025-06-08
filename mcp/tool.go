@@ -10,9 +10,11 @@ import (
 	"github.com/viant/fluxor/model/types"
 	"github.com/viant/fluxor/runtime/execution"
 	"github.com/viant/jsonrpc"
-	"github.com/viant/mcp-protocol/schema"
 	mcpschema "github.com/viant/mcp-protocol/schema"
 	serverproto "github.com/viant/mcp-protocol/server"
+	"strings"
+
+	"github.com/viant/fluxor-mcp/mcp/matcher"
 	"time"
 )
 
@@ -33,6 +35,38 @@ func (s *Service) Tools() serverproto.Tools {
 		}
 	}
 	return result
+}
+
+// MatchTools returns a subset of Tools() whose names match the supplied
+// pattern. The matching rules follow the same convention used by builtin
+// action auto-loading (see builtins.go):
+//  1. "*" – returns all registered tools (equivalent to Tools()).
+//  2. Prefix   – when the pattern ends with "/" it is treated as a service
+//     prefix. All tool names whose service component starts with that prefix
+//     are returned. Example: "system/" matches "system_storage-clean".
+//  3. Exact    – any other pattern is compared against the full tool name
+//     (service and method in canonical form). The service part may use
+//     slashes or underscores; internally it is normalised so that callers
+//     can use the more familiar slash-separated syntax.
+//
+// The function never returns nil – callers can range over the result safely.
+func (s *Service) MatchTools(pattern string) serverproto.Tools {
+	// Normalise service separators so that callers can supply slash-based
+	// patterns even though canonical tool names use underscores in that part.
+	norm := strings.ReplaceAll(pattern, "/", "_")
+	// When original pattern ended with '/', translate boundary to '-' so that
+	// service-prefix patterns map to tool canonical form (service_method).
+	if strings.HasSuffix(pattern, "/") {
+		norm = strings.TrimSuffix(norm, "_") + "-"
+	}
+
+	matched := make(serverproto.Tools, 0)
+	for _, t := range s.Tools() {
+		if matcher.Match(norm, t.Metadata.Name) {
+			matched = append(matched, t)
+		}
+	}
+	return matched
 }
 
 // LookupTool returns a pointer to the internal entry with the given name
@@ -59,7 +93,7 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 				res := &mcpschema.CallToolResult{}
 				if err != nil {
 					res.IsError = conv.Pointer[bool](true)
-					res.Content = append(res.Content, schema.CallToolResultContentElem{
+					res.Content = append(res.Content, mcpschema.CallToolResultContentElem{
 						Text: err.Error(),
 					})
 					return res, nil
@@ -74,7 +108,7 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 				default:
 					data, _ = json.Marshal(output)
 				}
-				res.Content = append(res.Content, schema.CallToolResultContentElem{
+				res.Content = append(res.Content, mcpschema.CallToolResultContentElem{
 					Text: string(data),
 				})
 				return res, nil
