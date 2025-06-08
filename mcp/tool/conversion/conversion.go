@@ -8,12 +8,62 @@ import (
 	"strings"
 	"time"
 
+	"github.com/viant/fluxor-mcp/internal/syncmap"
 	"github.com/viant/fluxor/model/types"
 	schema "github.com/viant/mcp-protocol/schema"
 	"github.com/viant/x"
 )
 
+// ------------------------------------------------------------------
+// Schema build & caching
+// ------------------------------------------------------------------
+
+// schemaCache stores already generated Tool schemas so that repeated
+// listTools calls do not redo the reflection/JSON-schema conversion work.
+// The key combines action name and the string representations of the input
+// and output types which are guaranteed to be stable for the lifetime of a
+// process (types generated at runtime are also unique thanks to reflect’s
+// internal type registry).
+var schemaCache = syncmap.NewRegistry[schema.Tool]()
+
+func cacheKey(sig *types.Signature) string {
+	var in, out string
+	if sig.Input != nil {
+		in = sig.Input.String()
+	}
+	if sig.Output != nil {
+		out = sig.Output.String()
+	}
+	return sig.Name + "|" + in + "->" + out
+}
+
+// BuildSchema converts a Fluxor action signature into an MCP Tool metadata
+// structure.  The result is cached so that subsequent conversions of the same
+// signature return instantly.
 func BuildSchema(sig *types.Signature) (schema.Tool, error) {
+	if sig == nil {
+		return schema.Tool{}, fmt.Errorf("nil signature")
+	}
+
+	key := cacheKey(sig)
+	if v := schemaCache.Get(key); v.Name != "" {
+		return v, nil
+	}
+
+	// Cache miss – perform the expensive reflection work once.
+	toolMeta, err := buildSchemaUncached(sig)
+	if err != nil {
+		return schema.Tool{}, err
+	}
+
+	schemaCache.Set(key, toolMeta)
+	return toolMeta, nil
+}
+
+// buildSchemaUncached contains the original BuildSchema implementation logic.
+// It must stay unexported so that every caller goes through BuildSchema and
+// therefore benefits from caching.
+func buildSchemaUncached(sig *types.Signature) (schema.Tool, error) {
 	var inputSchema schema.ToolInputSchema
 	var sample any
 	if sig.Input.Kind() == reflect.Pointer {

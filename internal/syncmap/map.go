@@ -19,7 +19,11 @@ func NewRegistry[T any]() *Map[T] {
 func (r *Map[T]) Get(name string) T {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
-	return r.m[name]
+	if v, ok := r.m[name]; ok {
+		return v
+	}
+	var zero T
+	return zero
 }
 
 // Set adds or updates an item by name
