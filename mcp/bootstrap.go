@@ -7,10 +7,9 @@ import (
 	"github.com/viant/fluxor"
 	"github.com/viant/fluxor-mcp/mcp/clientaction"
 	"github.com/viant/fluxor-mcp/mcp/config"
-	serverproto "github.com/viant/mcp-protocol/server"
 )
 
-// init is the main bootstrap routine invoked by service.go once all options
+// init is the main bootstrap routine invoked by proxy.go once all options
 // have been applied. Its sole responsibility is to orchestrate the individual
 // preparation steps so that the logic stays easy to read and to maintain.
 func (s *Service) init(ctx context.Context) error {
@@ -84,14 +83,7 @@ func (s *Service) initWorkflowService() {
 	// to give callers the chance to override defaults where appropriate.
 	opts = append(opts, s.Workflow.Options...)
 
-	// Ensure shared tool registry is allocated early so that subsequent logic
-	// can safely assume it is present.
-	if s.toolRegistry == nil {
-		s.toolRegistry = serverproto.NewRegistry()
-	}
 	s.Workflow.Service = fluxor.New(opts...)
 	s.Workflow.Runtime = s.Workflow.Service.Runtime()
 
-	// Build Server tool registry once.
-	s.buildMcpToolRegistry()
 }

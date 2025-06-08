@@ -42,7 +42,7 @@ func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.Cli
 		return fmt.Errorf("create mcp client %q: %w", mcpConfig.Name, err)
 	}
 
-	mcpToolService, err := tool.New(ctx, mcpConfig.Name, cli)
+	mcpToolService, err := tool.NewProxy(ctx, mcpConfig.Name, cli)
 	if err != nil {
 		return fmt.Errorf("load tools for %q: %w", mcpConfig.Name, err)
 	}
@@ -50,8 +50,6 @@ func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.Cli
 	if err := actions.Register(mcpToolService); err != nil {
 		return err
 	}
-	// make new tools available for future implementers
-	s.updateToolRegistryForService(mcpToolService)
 	return nil
 }
 

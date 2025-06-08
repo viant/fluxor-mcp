@@ -15,6 +15,8 @@ import (
 // rather than on each connection.
 func (s *Service) NewServer(ctx context.Context, notifier transport.Notifier, l logger.Logger, cli protocolclient.Operations) (serverproto.Server, error) {
 	impl := serverproto.NewDefaultServer(notifier, l, cli)
-	impl.Registry = s.toolRegistry
+	for _, tool := range s.Tools() {
+		impl.Registry.ToolRegistry.Put(tool.Metadata.Name, tool)
+	}
 	return impl, nil
 }

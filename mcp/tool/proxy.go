@@ -3,7 +3,6 @@ package tool
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/viant/fluxor-mcp/internal/conv"
 	"reflect"
 
@@ -15,17 +14,17 @@ import (
 
 // --------------------- Remote tool service --------------------- //
 
-// Service implements types.Service by delegating each method to a
+// Proxy implements types.Proxy by delegating each method to a
 // corresponding Server remote tool. The service is generated at runtime based on
 // the server’s listTools response.
-type Service struct {
+type Proxy struct {
 	name    string
 	client  mcpclient.Interface
 	methods map[string]*mcpschema.Tool
 	sigs    types.Signatures
 }
 
-func New(ctx context.Context, name string, cli mcpclient.Interface) (types.Service, error) {
+func NewProxy(ctx context.Context, name string, cli mcpclient.Interface) (types.Service, error) {
 	// Fetch all available tools (paging supported).
 	tools := make([]mcpschema.Tool, 0)
 	var cursor *string
@@ -90,42 +89,26 @@ func New(ctx context.Context, name string, cli mcpclient.Interface) (types.Servi
 		})
 	}
 
-	return &Service{name: name, client: cli, methods: m, sigs: sigs}, nil
+	return &Proxy{name: name, client: cli, methods: m, sigs: sigs}, nil
 }
 
-func (r *Service) Name() string {
+func (r *Proxy) Name() string {
 	return r.name
 }
 
-func (r *Service) Methods() types.Signatures {
+func (r *Proxy) Methods() types.Signatures {
 	return r.sigs
 }
 
-func (r *Service) Method(name string) (types.Executable, error) {
+func (r *Proxy) Method(name string) (types.Executable, error) {
 	tool, ok := r.methods[name]
 	if !ok {
-		return nil, fmt.Errorf("unknown tool %q", name)
+		return nil, types.NewMethodNotFoundError(name)
 	}
 
 	exec := func(ctx context.Context, input, output interface{}) error {
-		// Expect input to be a map[string]interface{}. Best-effort conversion.
-		var args map[string]interface{}
-		switch v := input.(type) {
-		case map[string]interface{}:
-			args = v
-		case *map[string]interface{}:
-			if v != nil {
-				args = *v
-			}
-		case nil:
-			// no arguments
-		default:
-			// Attempt JSON marshal/unmarshal roundtrip as last resort.
-			data, err := json.Marshal(v)
-			if err == nil {
-				_ = json.Unmarshal(data, &args)
-			}
-		}
+		// Coerce input into map[string]interface{} expected by MCP.
+		args, _ := conv.ToMap(input)
 
 		params := &mcpschema.CallToolRequestParams{
 			Name:      tool.Name,

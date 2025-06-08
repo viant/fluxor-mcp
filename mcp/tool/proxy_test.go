@@ -61,7 +61,7 @@ func TestRemoteToolService_Echo(t *testing.T) {
 	ctx := context.Background()
 	cli := newTestServer(t)
 
-	svc, err := coretool.New(ctx, "test", cli)
+	svc, err := coretool.NewProxy(ctx, "test", cli)
 	if err != nil {
 		t.Fatalf("failed to create remote service: %v", err)
 	}

@@ -125,3 +125,30 @@ func TestToStruct_OmitEmptyTags(t *testing.T) {
 	assert.Equal(t, "foo", fooTag)
 	assert.Equal(t, "bar,omitempty", barTag)
 }
+
+// TestDescriptionAndEnumTags verifies that description and enum values are
+// injected into struct tags when converting JSON Schema to Go struct type.
+func TestDescriptionAndEnumTags(t *testing.T) {
+	schemaJSON := `{
+        "properties": {
+            "status": {
+                "type": "string",
+                "description": "current status",
+                "enum": ["open","closed"]
+            }
+        },
+        "type": "object"
+    }`
+
+	inst, err := ToStruct([]byte(schemaJSON), []byte(`{"status":"open"}`))
+	require.NoError(t, err)
+
+	typ := reflect.TypeOf(inst).Elem()
+	field, ok := typ.FieldByName("Status")
+	require.True(t, ok)
+
+	tag := string(field.Tag)
+	assert.Contains(t, tag, `description:"current status"`)
+	assert.Contains(t, tag, `choice:"open"`)
+	assert.Contains(t, tag, `choice:"closed"`)
+}

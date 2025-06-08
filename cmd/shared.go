@@ -42,6 +42,9 @@ func serviceSingleton() (*mcp.Service, error) {
 		}
 
 		svcInst, svcErr = mcp.New(context.Background(), mcp.WithConfig(cfg))
+		if svcErr == nil {
+			svcErr = svcInst.Start(context.Background())
+		}
 	})
 	return svcInst, svcErr
 }

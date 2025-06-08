@@ -118,10 +118,37 @@ func buildFields(props map[string]map[string]interface{}, required []string) ([]
 		if _, ok := requiredSet[name]; !ok {
 			tagName += ",omitempty"
 		}
+
+		// ------------------------------------------------------------------
+		// Build struct tag with additional metadata (description, enum).
+		// Example: `json:"foo,omitempty" description:"A foo field" choice:"o1" choice:"o2"`
+		// ------------------------------------------------------------------
+
+		tagParts := []string{fmt.Sprintf("json:%q", tagName)}
+
+		if desc, ok := def["description"].(string); ok && desc != "" {
+			tagParts = append(tagParts, fmt.Sprintf("description:%q", desc))
+		}
+
+		if rawEnum, ok := def["enum"].([]interface{}); ok {
+			for _, ev := range rawEnum {
+				switch v := ev.(type) {
+				case string:
+					tagParts = append(tagParts, fmt.Sprintf("choice:%q", v))
+				case fmt.Stringer:
+					tagParts = append(tagParts, fmt.Sprintf("choice:%q", v.String()))
+				default:
+					// ignore non-string enum values for tag purposes
+				}
+			}
+		}
+
+		tag := reflect.StructTag(strings.Join(tagParts, " "))
+
 		fields = append(fields, reflect.StructField{
 			Name: strings.Title(name),
 			Type: fieldType,
-			Tag:  reflect.StructTag(fmt.Sprintf("json:%q", tagName)),
+			Tag:  tag,
 		})
 	}
 	return fields, nil

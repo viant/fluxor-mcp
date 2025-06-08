@@ -14,11 +14,15 @@ func (c *ListToolsCmd) Execute(_ []string) error {
 		return err
 	}
 
-	tools := svc.ToolDescriptors()
+	tools := svc.Tools()
 	// Sorting for deterministic output (helpful for tests & scripting).
-	sort.Slice(tools, func(i, j int) bool { return tools[i].Name < tools[j].Name })
+	sort.Slice(tools, func(i, j int) bool { return tools[i].Metadata.Name < tools[j].Metadata.Name })
 	for _, t := range tools {
-		fmt.Printf("%s\t%s\n", t.Name, t.Description)
+		desc := ""
+		if t.Metadata.Description != nil {
+			desc = *t.Metadata.Description
+		}
+		fmt.Printf("%s\t%s\n", t.Metadata.Name, desc)
 	}
 	return nil
 }

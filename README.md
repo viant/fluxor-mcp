@@ -133,6 +133,7 @@ Commands:
   run            Run a workflow                 (see `run --help`)
   serve          Start an MCP server            (see `serve --help`)
   add-client     Register remote MCP endpoint   (see `add-client --help`)
+  exec           Execute a tool/action once     (see `exec --help`)
   list-tools     List all registered tools      (service/method)
   list-actions   List Fluxor services & actions
   tool           Show detailed info about one tool
@@ -160,6 +161,12 @@ Commands:
      --name prod \
      --address https://mcp.example.com/tools \
      --version v1
+
+4. **Execute a tool once**
+
+   ```bash
+   fluxor-mcp exec -n input-ask -i '{"Message":"what is your favourite city"}'
+   ```
    ```
 
 
@@ -215,6 +222,9 @@ go run ./cmd/fluxor-mcp serve
 # Inspect available tools / actions
 go run ./cmd/fluxor-mcp list-tools
 go run ./cmd/fluxor-mcp list-actions
+
+# Execute a single tool locally (prompt user for input)
+go run ./cmd/fluxor-mcp exec -n input-ask -i '{"Message":"what is your favourite city"}'
 ```
 
 

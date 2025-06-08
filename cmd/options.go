@@ -12,6 +12,7 @@ type Options struct {
 	ListActions *ListActionsCmd `command:"list-actions" description:"List Fluxor services and their actions"`
 	Action      *ActionCmd      `command:"action"       description:"Show detailed info about one Fluxor action"`
 	Tool        *ToolCmd        `command:"tool"         description:"Show detailed info about one MCP tool"`
+	Exec        *ExecCmd        `command:"exec"         description:"Execute tool/action"`
 	Serve       *ServeCmd       `command:"serve"        description:"Start MCP server exposing the registered tools"`
 }
 
@@ -31,6 +32,8 @@ func (o *Options) Init(firstArg string) {
 		o.Action = &ActionCmd{}
 	case "tool":
 		o.Tool = &ToolCmd{}
+	case "exec":
+		o.Exec = &ExecCmd{}
 	case "serve":
 		o.Serve = &ServeCmd{}
 	}
