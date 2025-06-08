@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/viant/fluxor-mcp/internal/conv"
+	"github.com/viant/fluxor-mcp/mcp/matcher"
 	"github.com/viant/fluxor-mcp/mcp/tool"
 	"github.com/viant/fluxor-mcp/mcp/tool/conversion"
 	"github.com/viant/fluxor/model/types"
@@ -12,9 +13,6 @@ import (
 	"github.com/viant/jsonrpc"
 	mcpschema "github.com/viant/mcp-protocol/schema"
 	serverproto "github.com/viant/mcp-protocol/server"
-	"strings"
-
-	"github.com/viant/fluxor-mcp/mcp/matcher"
 	"time"
 )
 
@@ -51,15 +49,7 @@ func (s *Service) Tools() serverproto.Tools {
 //
 // The function never returns nil – callers can range over the result safely.
 func (s *Service) MatchTools(pattern string) serverproto.Tools {
-	// Normalise service separators so that callers can supply slash-based
-	// patterns even though canonical tool names use underscores in that part.
-	norm := strings.ReplaceAll(pattern, "/", "_")
-	// When original pattern ended with '/', translate boundary to '-' so that
-	// service-prefix patterns map to tool canonical form (service_method).
-	if strings.HasSuffix(pattern, "/") {
-		norm = strings.TrimSuffix(norm, "_") + "-"
-	}
-
+	norm := tool.Name(pattern).ToolName()
 	matched := make(serverproto.Tools, 0)
 	for _, t := range s.Tools() {
 		if matcher.Match(norm, t.Metadata.Name) {

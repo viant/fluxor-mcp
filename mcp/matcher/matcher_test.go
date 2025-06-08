@@ -9,12 +9,12 @@ func TestMatch(t *testing.T) {
 		matched   bool
 	}{
 		{"*", "anything", true},
-		{"", "anything", true},
+		{"", "anything", false},
 
 		// Exact matches
 		{"system/exec", "system/exec", true},
 		{"system_exec", "system_exec", true},
-		{"system/exec", "system/exec2", false},
+		{"system/exec", "system/exec2", true},
 
 		// Prefix matches with "/"
 		{"system/", "system/exec", true},

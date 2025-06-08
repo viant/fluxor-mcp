@@ -10,14 +10,21 @@ func (t Name) Service() string {
 	if idx := strings.LastIndex(tool, "-"); idx != -1 {
 		return strings.ReplaceAll(tool[:idx], "_", "/")
 	}
-	return ""
+	return tool
 }
+
 func (t Name) Method() string {
 	tool := string(t)
 	if idx := strings.LastIndex(tool, "-"); idx != -1 {
 		return tool[idx+1:]
 	}
-	return tool
+	return ""
+}
+
+func (t Name) ToolName() string {
+	r := string(t)
+	r = strings.ReplaceAll(r, "/", "_")
+	return r
 }
 
 func (t Name) String() string {
