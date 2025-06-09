@@ -11,7 +11,7 @@ require (
 	github.com/viant/fluxor v0.1.8
 	github.com/viant/jsonrpc v0.6.0
 	github.com/viant/mcp v0.3.0
-	github.com/viant/mcp-protocol v0.3.11
+	github.com/viant/mcp-protocol v0.3.12
 	github.com/viant/x v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )
