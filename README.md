@@ -164,10 +164,26 @@ Commands:
 
 4. **Execute a tool once**
 
+   The `-n/--name` flag accepts multiple notation styles that all refer to the
+   same underlying tool. Pick whichever feels most natural – the CLI
+   normalises it automatically.
+
    ```bash
-   fluxor-mcp exec -n input-ask -i '{"Message":"what is your favourite city"}'
+   # Canonical underscore/dash notation (service_…-method)
+   fluxor-mcp exec -n system_exec-execute -i '{"commands":["echo hello"]}'
+
+   # Slash + dot  (service/path.method)
+   fluxor-mcp exec -n system/exec.execute -i '{"commands":["echo hello"]}'
+
+   # Slash + dash (service/path-method)
+   fluxor-mcp exec -n system/exec-execute -i '{"commands":["echo hello"]}'
+
+   # Fully slash separated (service/path/method)
+   fluxor-mcp exec -n system/exec/execute -i '{"commands":["echo hello"]}'
    ```
-   ```
+
+   Supplying an unknown tool now fails fast with a clear error instead of
+   hanging.
 
 
 ## Configuration

@@ -3,6 +3,7 @@ package tool
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/viant/fluxor-mcp/internal/conv"
 	"reflect"
 
@@ -114,12 +115,22 @@ func (r *Proxy) Method(name string) (types.Executable, error) {
 			Name:      tool.Name,
 			Arguments: mcpschema.CallToolRequestParamsArguments(args),
 		}
-
 		res, err := r.client.CallTool(ctx, params)
 		if err != nil {
 			return err
 		}
-
+		if res.IsError != nil && *res.IsError {
+			errMessage := ""
+			if len(res.Content) == 1 {
+				errMessage = res.Content[0].Text
+			}
+			if errMessage == "" {
+				if data, err := json.Marshal(res.Content[0]); err == nil {
+					errMessage = string(data)
+				}
+			}
+			return fmt.Errorf(errMessage)
+		}
 		// Propagate raw response into output when caller provided one.
 		if output != nil {
 			// Handle common cases: *string or *mcpschema.CallToolResult.
