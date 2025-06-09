@@ -53,10 +53,10 @@ func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.Cli
 	return nil
 }
 
-func (s *Service) Client() protocolclient.Operations {
+func (s *Service) Client() protocolclient.Client {
 	impl := s.client
 	if impl == nil {
-		impl = newStubImplementer()
+		impl = newMcpClient()
 	}
 	return impl
 }

@@ -19,7 +19,7 @@ import (
 type Service struct {
 	Workflow
 	started int32
-	client  protocolclient.Operations
+	client  protocolclient.Client
 	config  *config.Config
 
 	// guard concurrent modifications.
@@ -76,7 +76,7 @@ func WithExtensions(ext ...types.Service) Option {
 
 // WithClient overrides the default stub implementer used for
 // outgoing Server client connections to externals.
-func WithClient(impl protocolclient.Operations) Option {
+func WithClient(impl protocolclient.Client) Option {
 	return func(s *Service) {
 		s.client = impl
 	}

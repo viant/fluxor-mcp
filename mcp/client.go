@@ -54,4 +54,4 @@ func (*defaultClient) CreateUserInteraction(context.Context, *mcpschema.CreateUs
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
 
-func newStubImplementer() protoclient.Client { return &defaultClient{} }
+func newMcpClient() protoclient.Client { return &defaultClient{} }
