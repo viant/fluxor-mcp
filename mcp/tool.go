@@ -13,6 +13,7 @@ import (
 	"github.com/viant/jsonrpc"
 	mcpschema "github.com/viant/mcp-protocol/schema"
 	serverproto "github.com/viant/mcp-protocol/server"
+	"strings"
 	"time"
 )
 
@@ -49,7 +50,13 @@ func (s *Service) Tools() serverproto.Tools {
 //
 // The function never returns nil – callers can range over the result safely.
 func (s *Service) MatchTools(pattern string) serverproto.Tools {
-	norm := tool.Name(pattern).ToolName()
+	// Normalise pattern: replace service separators and ensure prefix patterns
+	// map to canonical dash after service part.
+	norm := strings.ReplaceAll(pattern, "/", "_")
+
+	if strings.HasSuffix(pattern, "/") { // service prefix pattern
+		norm = strings.TrimSuffix(norm, "_") + "-"
+	}
 	matched := make(serverproto.Tools, 0)
 	for _, t := range s.Tools() {
 		if matcher.Match(norm, t.Metadata.Name) {
@@ -112,6 +119,26 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 // ExecuteTool invokes a registered fluxor action with the supplied arguments.
 func (s *Service) ExecuteTool(ctx context.Context, name string, args map[string]interface{}, timeout time.Duration) (interface{}, error) {
 	toolName := tool.Name(name)
+
+	// Early validation: ensure service and method exist so that callers get a
+	// quick error instead of waiting for the runtime scheduler when the tool
+	// is unknown.
+	actions := s.Workflow.Service.Actions()
+	svc := actions.Lookup(toolName.Service())
+	if svc == nil {
+		return nil, fmt.Errorf("unknown service: %s", toolName.Service())
+	}
+
+	found := false
+	for _, sig := range svc.Methods() {
+		if sig.Name == toolName.Method() {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, fmt.Errorf("unknown method: %s in service %s", toolName.Method(), toolName.Service())
+	}
 
 	exec, err := execution.NewAtHocExecution(toolName.Service(), toolName.Method(), args)
 	if err != nil {

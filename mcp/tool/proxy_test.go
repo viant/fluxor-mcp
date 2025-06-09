@@ -44,8 +44,15 @@ func newTestServer(t *testing.T) mcpclient.Interface {
 			},
 			Required: []string{"message"},
 		}
+		outputSchema := &mcpschema.ToolOutputSchema{
+			Type: "object",
+			Properties: map[string]map[string]interface{}{
+				"message": {"type": "string"},
+			},
+			Required: []string{"message"},
+		}
 
-		impl.RegisterToolWithSchema("echo", "echo message back", inputSchema, echoHandler)
+		impl.RegisterToolWithSchema("echo", "echo message back", inputSchema, outputSchema, echoHandler)
 		return impl, nil
 	}
 

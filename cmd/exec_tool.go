@@ -7,6 +7,8 @@ import (
 	"io"
 	"os"
 	"time"
+
+	"github.com/viant/fluxor-mcp/mcp/tool"
 )
 
 // ExecCmd executes a registered tool (service-method pair) or generic Fluxor
@@ -68,7 +70,9 @@ func (c *ExecCmd) Execute(_ []string) error {
 	if timeout == 0 {
 		timeout = 120 * time.Second
 	}
-	out, err := svc.ExecuteTool(ctx, c.Name, args, timeout)
+	canonical := tool.Canonical(c.Name)
+
+	out, err := svc.ExecuteTool(ctx, canonical, args, timeout)
 	if err != nil {
 		return err
 	}
