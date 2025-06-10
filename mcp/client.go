@@ -41,17 +41,21 @@ func (d *defaultClient) Implements(method string) bool {
 	return d.implements[method]
 }
 
-func (*defaultClient) ListRoots(context.Context, *mcpschema.ListRootsRequestParams) (*mcpschema.ListRootsResult, *jsonrpc.Error) {
+func (*defaultClient) ListRoots(context.Context, *jsonrpc.TypedRequest[*mcpschema.ListRootsRequest]) (*mcpschema.ListRootsResult, *jsonrpc.Error) {
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
-func (*defaultClient) CreateMessage(context.Context, *mcpschema.CreateMessageRequestParams) (*mcpschema.CreateMessageResult, *jsonrpc.Error) {
+func (*defaultClient) CreateMessage(context.Context, *jsonrpc.TypedRequest[*mcpschema.CreateMessageRequest]) (*mcpschema.CreateMessageResult, *jsonrpc.Error) {
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
-func (*defaultClient) Elicit(context.Context, *mcpschema.ElicitRequestParams) (*mcpschema.ElicitResult, *jsonrpc.Error) {
+func (*defaultClient) Elicit(context.Context, *jsonrpc.TypedRequest[*mcpschema.ElicitRequest]) (*mcpschema.ElicitResult, *jsonrpc.Error) {
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
-func (*defaultClient) CreateUserInteraction(context.Context, *mcpschema.CreateUserInteractionRequestParams) (*mcpschema.CreateUserInteractionResult, *jsonrpc.Error) {
+func (*defaultClient) CreateUserInteraction(context.Context, *jsonrpc.TypedRequest[*mcpschema.CreateUserInteractionRequest]) (*mcpschema.CreateUserInteractionResult, *jsonrpc.Error) {
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
+}
+
+func (*defaultClient) Notify(ctx context.Context, notification *jsonrpc.Notification) error {
+	return jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
 
 func newMcpClient() protoclient.Handler { return &defaultClient{} }

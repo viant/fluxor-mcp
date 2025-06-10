@@ -50,7 +50,7 @@ func New(cli protocolclient.Operations) *Service {
 			out:         reflect.TypeOf(&mcpschema.ElicitResult{}),
 			call: func(ctx context.Context, c protocolclient.Operations, in interface{}) (interface{}, *jsonrpc.Error) {
 				p, _ := in.(*mcpschema.ElicitRequestParams)
-				return c.Elicit(ctx, p)
+				return c.Elicit(ctx, &jsonrpc.TypedRequest[*mcpschema.ElicitRequest]{Request: &mcpschema.ElicitRequest{Params: *p}})
 			},
 			desc: "Elicit content using the serverʼs elicitation endpoint",
 		},
@@ -61,7 +61,7 @@ func New(cli protocolclient.Operations) *Service {
 			out:         reflect.TypeOf(&mcpschema.CreateUserInteractionResult{}),
 			call: func(ctx context.Context, c protocolclient.Operations, in interface{}) (interface{}, *jsonrpc.Error) {
 				p, _ := in.(*mcpschema.CreateUserInteractionRequestParams)
-				return c.CreateUserInteraction(ctx, p)
+				return c.CreateUserInteraction(ctx, &jsonrpc.TypedRequest[*mcpschema.CreateUserInteractionRequest]{Request: &mcpschema.CreateUserInteractionRequest{Params: *p}})
 			},
 			desc: "Create a user interaction on the server",
 		},
@@ -72,7 +72,7 @@ func New(cli protocolclient.Operations) *Service {
 			out:         reflect.TypeOf(&mcpschema.ListRootsResult{}),
 			call: func(ctx context.Context, c protocolclient.Operations, in interface{}) (interface{}, *jsonrpc.Error) {
 				p, _ := in.(*mcpschema.ListRootsRequestParams)
-				return c.ListRoots(ctx, p)
+				return c.ListRoots(ctx, &jsonrpc.TypedRequest[*mcpschema.ListRootsRequest]{Request: &mcpschema.ListRootsRequest{Params: p}})
 			},
 			desc: "List server roots",
 		},
@@ -83,7 +83,7 @@ func New(cli protocolclient.Operations) *Service {
 			out:         reflect.TypeOf(&mcpschema.CreateMessageResult{}),
 			call: func(ctx context.Context, c protocolclient.Operations, in interface{}) (interface{}, *jsonrpc.Error) {
 				p, _ := in.(*mcpschema.CreateMessageRequestParams)
-				return c.CreateMessage(ctx, p)
+				return c.CreateMessage(ctx, &jsonrpc.TypedRequest[*mcpschema.CreateMessageRequest]{Request: &mcpschema.CreateMessageRequest{Params: *p}})
 			},
 			desc: "Create a message via sampling endpoint",
 		},
