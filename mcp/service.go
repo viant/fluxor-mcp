@@ -18,9 +18,9 @@ import (
 // large, monolithic functions.
 type Service struct {
 	Workflow
-	started int32
-	client  protocolclient.Client
-	config  *config.Config
+	started       int32
+	clientHandler protocolclient.Handler
+	config        *config.Config
 
 	// guard concurrent modifications.
 	mu sync.RWMutex
@@ -74,11 +74,11 @@ func WithExtensions(ext ...types.Service) Option {
 	}
 }
 
-// WithClient overrides the default stub implementer used for
-// outgoing Server client connections to externals.
-func WithClient(impl protocolclient.Client) Option {
+// WithClientHandler overrides the default stub implementer used for
+// outgoing Server clientHandler connections to externals.
+func WithClientHandler(clientHandler protocolclient.Handler) Option {
 	return func(s *Service) {
-		s.client = impl
+		s.clientHandler = clientHandler
 	}
 }
 

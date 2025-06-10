@@ -30,16 +30,16 @@ func (s *Service) registerExternalActions(ctx context.Context) error {
 	return nil
 }
 
-// RegisterMcpClientTools register Server client
+// RegisterMcpClientTools register Server clientHandler
 func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.ClientOptions) error {
 	actions := s.Workflow.Service.Actions()
 	mcpConfig.Init()
 
-	impl := s.Client()
+	impl := s.ClientHandler()
 
 	cli, err := mcp.NewClient(impl, mcpConfig)
 	if err != nil {
-		return fmt.Errorf("create mcp client %q: %w", mcpConfig.Name, err)
+		return fmt.Errorf("create mcp clientHandler %q: %w", mcpConfig.Name, err)
 	}
 
 	mcpToolService, err := tool.NewProxy(ctx, mcpConfig.Name, cli)
@@ -53,15 +53,15 @@ func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.Cli
 	return nil
 }
 
-func (s *Service) Client() protocolclient.Client {
-	impl := s.client
+func (s *Service) ClientHandler() protocolclient.Handler {
+	impl := s.clientHandler
 	if impl == nil {
 		impl = newMcpClient()
 	}
 	return impl
 }
 
-// loadMCPClientConfig resolves Server client options either embedded directly in
+// loadMCPClientConfig resolves Server clientHandler options either embedded directly in
 // the config or referenced via URL.
 func (s *Service) loadMCPClientConfig(ctx context.Context) ([]*mcp.ClientOptions, error) {
 	if s.config == nil || s.config.MCP == nil {

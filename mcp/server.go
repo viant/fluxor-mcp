@@ -9,12 +9,12 @@ import (
 	serverproto "github.com/viant/mcp-protocol/server"
 )
 
-// NewServer returns an Server implementer that exposes the already-built
+// NewHandler returns an Server implementer that exposes the already-built
 // shared tool registry. Every incoming connection therefore reuses the same
 // Registry instance – tools are registered once during Service bootstrap
 // rather than on each connection.
-func (s *Service) NewServer(ctx context.Context, notifier transport.Notifier, l logger.Logger, cli protocolclient.Operations) (serverproto.Server, error) {
-	impl := serverproto.NewDefaultServer(notifier, l, cli)
+func (s *Service) NewHandler(ctx context.Context, notifier transport.Notifier, l logger.Logger, cli protocolclient.Operations) (serverproto.Handler, error) {
+	impl := serverproto.NewDefaultHandler(notifier, l, cli)
 	for _, tool := range s.Tools() {
 		impl.Registry.ToolRegistry.Put(tool.Metadata.Name, tool)
 	}

@@ -8,7 +8,7 @@ import (
 	mcpschema "github.com/viant/mcp-protocol/schema"
 )
 
-// defaultClient provides no-op implementations for all client-side RPC
+// defaultClient provides no-op implementations for all clientHandler-side RPC
 // operations so that outgoing Server clients can be instantiated without the
 // caller having to care about server-initiated callbacks.
 type defaultClient struct {
@@ -54,4 +54,4 @@ func (*defaultClient) CreateUserInteraction(context.Context, *mcpschema.CreateUs
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
 
-func newMcpClient() protoclient.Client { return &defaultClient{} }
+func newMcpClient() protoclient.Handler { return &defaultClient{} }

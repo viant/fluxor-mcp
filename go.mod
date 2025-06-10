@@ -9,9 +9,9 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/viant/afs v1.26.2
 	github.com/viant/fluxor v0.1.10
-	github.com/viant/jsonrpc v0.6.1
-	github.com/viant/mcp v0.3.0
-	github.com/viant/mcp-protocol v0.3.12
+	github.com/viant/jsonrpc v0.6.2
+	github.com/viant/mcp v0.4.0
+	github.com/viant/mcp-protocol v0.4.1
 	github.com/viant/x v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )

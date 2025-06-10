@@ -69,8 +69,8 @@ func (s *Service) initWorkflowService() {
 		}
 	}
 
-	// Always expose MCP client operations that this process implements.
-	mcpClientSvc := clientaction.New(s.Client())
+	// Always expose MCP clientHandler operations that this process implements.
+	mcpClientSvc := clientaction.New(s.ClientHandler())
 	if len(mcpClientSvc.Methods()) > 0 {
 		s.Workflow.Extensions = append(s.Workflow.Extensions, mcpClientSvc)
 	}

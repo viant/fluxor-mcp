@@ -29,7 +29,7 @@ func (c *ServeCmd) Execute(_ []string) error {
 		srvOpts = cfg.Server
 	}
 
-	mcpServer, err := mcp.NewServer(svc.NewServer, srvOpts)
+	mcpServer, err := mcp.NewServer(svc.NewHandler, srvOpts)
 	if err != nil {
 		return err
 	}
