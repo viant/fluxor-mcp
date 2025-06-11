@@ -13,17 +13,17 @@ import (
 )
 
 type Group[T any] struct {
-	URL   string `yaml:"url" json:"url" short:"u" long:"url" description:"url"`
-	Items []T    `yaml:"items" json:"items" short:"i" long:"items" description:"items"`
+	URL   string `yaml:"url,omitempty" json:"url,omitempty" short:"u" long:"url" description:"url"`
+	Items []T    `yaml:"items,omitempty" json:"items,omitempty" short:"i" long:"items" description:"items"`
 }
 
 type Config struct {
-	Server         *mcp.ServerOptions `yaml:"server" json:"server"`
+	Server         *mcp.ServerOptions `yaml:"server,omitempty" json:"server,omitempty"`
 	Options        []fluxor.Option
 	Extensions     []types.Service
 	ExtensionTypes []*x.Type
-    Builtins       []string `yaml:"builtins" json:"builtins"`
-	MCP            *Group[*mcp.ClientOptions] `yaml:"mcp" json:"mcp"`
+	Builtins       []string                   `yaml:"builtins,omitempty" json:"builtins,omitempty"`
+	MCP            *Group[*mcp.ClientOptions] `yaml:"mcp,omitempty" json:"mcp,omitempty"`
 }
 
 func Load(path string) (*Config, error) {

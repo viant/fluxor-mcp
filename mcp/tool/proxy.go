@@ -135,6 +135,13 @@ func (r *Proxy) Method(name string) (types.Executable, error) {
 		if output != nil {
 			// Handle common cases: *string or *mcpschema.CallToolResult.
 			switch v := output.(type) {
+			case *interface{}:
+				if len(res.Content) == 1 && res.Content[0].Type == "text" {
+					*v = res.Content[0].Text
+				} else {
+					data, _ := json.Marshal(res.Content)
+					*v = string(data)
+				}
 			case *string:
 				if len(res.Content) == 1 && res.Content[0].Type == "text" {
 					*v = res.Content[0].Text
