@@ -10,8 +10,8 @@ require (
 	github.com/viant/afs v1.26.2
 	github.com/viant/fluxor v0.1.12
 	github.com/viant/jsonrpc v0.7.2
-	github.com/viant/mcp v0.4.2
-	github.com/viant/mcp-protocol v0.4.3
+	github.com/viant/mcp v0.4.3
+	github.com/viant/mcp-protocol v0.4.4
 	github.com/viant/x v0.3.0
 	gopkg.in/yaml.v3 v3.0.1
 )

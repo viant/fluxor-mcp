@@ -33,8 +33,8 @@ func newTestServer(t *testing.T) mcpclient.Interface {
 	t.Helper()
 
 	// Build an implementer with the echo tool registered.
-	newImpl := func(ctx context.Context, _ transport.Notifier, _ mcpLogger.Logger, _ protocolclient.Operations) (protoserver.Server, error) {
-		impl := protoserver.NewDefaultServer(nil, nil, nil)
+	newImpl := func(ctx context.Context, _ transport.Notifier, _ mcpLogger.Logger, _ protocolclient.Operations) (protoserver.Handler, error) {
+		impl := protoserver.NewDefaultHandler(nil, nil, nil)
 
 		// Define input schema for the echo tool.
 		inputSchema := mcpschema.ToolInputSchema{
