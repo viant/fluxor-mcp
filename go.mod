@@ -8,7 +8,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/stretchr/testify v1.10.0
 	github.com/viant/afs v1.26.2
-	github.com/viant/fluxor v0.1.12
+	github.com/viant/fluxor v0.1.14
 	github.com/viant/jsonrpc v0.7.2
 	github.com/viant/mcp v0.4.3
 	github.com/viant/mcp-protocol v0.4.4
