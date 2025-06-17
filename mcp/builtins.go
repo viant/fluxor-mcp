@@ -27,12 +27,17 @@ var builtinFactories = map[string]func() types.Service{
 // resolveBuiltinServices converts pattern(s) – "*" for all, prefix or exact –
 // into concrete service instances.  Duplicate patterns are ignored.
 func resolveBuiltinServices(patterns []string) []types.Service {
+	return ResolveServices(patterns, builtinFactories)
+}
+
+// ResolveServices resolves services
+func ResolveServices(patterns []string, factories map[string]func() types.Service) []types.Service {
 	selected := make(map[string]struct{})
 
 	add := func(name string) { selected[name] = struct{}{} }
 
 	for _, p := range patterns {
-		for n := range builtinFactories {
+		for n := range factories {
 			if matcher.Match(p, n) {
 				add(n)
 			}
@@ -42,7 +47,7 @@ func resolveBuiltinServices(patterns []string) []types.Service {
 	// Instantiate.
 	out := make([]types.Service, 0, len(selected))
 	for name := range selected {
-		if factory := builtinFactories[name]; factory != nil {
+		if factory := factories[name]; factory != nil {
 			out = append(out, factory())
 		}
 	}
