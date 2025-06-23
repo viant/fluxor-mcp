@@ -5,6 +5,7 @@ import (
 	"github.com/viant/fluxor"
 	"github.com/viant/fluxor-mcp/mcp/config"
 	"github.com/viant/fluxor/model/types"
+	"github.com/viant/mcp"
 	"github.com/viant/x"
 	"sync"
 	"sync/atomic"
@@ -18,9 +19,10 @@ import (
 // large, monolithic functions.
 type Service struct {
 	Workflow
-	started       int32
-	clientHandler protocolclient.Handler
-	config        *config.Config
+	started         int32
+	clientHandler   protocolclient.Handler
+	config          *config.Config
+	mcpErrorHandler func(config *mcp.ClientOptions, err error) error
 
 	// guard concurrent modifications.
 	mu sync.RWMutex
@@ -82,11 +84,21 @@ func WithClientHandler(clientHandler protocolclient.Handler) Option {
 	}
 }
 
+func WithMcpErrorHandler(handler func(config *mcp.ClientOptions, err error) error) Option {
+	return func(s *Service) {
+		s.mcpErrorHandler = handler
+	}
+}
+
 // New constructs a new service instance. The actual bootstrap is handled by
 // init() in bootstrap.go so that callers do not need to care about the
 // internal initialisation sequence.
 func New(ctx context.Context, opts ...Option) (*Service, error) {
-	svc := &Service{}
+	svc := &Service{
+		mcpErrorHandler: func(config *mcp.ClientOptions, err error) error {
+			return err
+		},
+	}
 	for _, opt := range opts {
 		opt(svc)
 	}

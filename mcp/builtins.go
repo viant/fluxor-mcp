@@ -2,6 +2,7 @@ package mcp
 
 import (
 	"github.com/viant/fluxor/model/types"
+	"github.com/viant/fluxor/service/action/system/patch"
 
 	"github.com/viant/fluxor-mcp/mcp/matcher"
 
@@ -22,6 +23,7 @@ var builtinFactories = map[string]func() types.Service{
 	"system/exec":    func() types.Service { return exec.New() },
 	"system/storage": func() types.Service { return storage.New() },
 	"system/secret":  func() types.Service { return secret.New() },
+	"system/patch":   func() types.Service { return patch.New() },
 }
 
 // resolveBuiltinServices converts pattern(s) – "*" for all, prefix or exact –

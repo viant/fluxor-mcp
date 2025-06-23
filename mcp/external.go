@@ -22,9 +22,12 @@ func (s *Service) registerExternalActions(ctx context.Context) error {
 		return nil // nothing to do – no externals configured
 	}
 	for _, mcpConfig := range mcpConfigs {
+
 		// Ensure required defaults are applied so that name/version are never empty.
 		if err = s.RegisterMcpClientTools(ctx, mcpConfig); err != nil {
-			return err
+			if err = s.mcpErrorHandler(mcpConfig, err); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
