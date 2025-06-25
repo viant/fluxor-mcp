@@ -77,9 +77,10 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 	for _, method := range service.Methods() {
 		if method.Name == toolMethod {
 			sig := &types.Signature{
-				Name:   name,
-				Input:  method.Input,
-				Output: method.Output,
+				Name:        name,
+				Input:       method.Input,
+				Output:      method.Output,
+				Description: method.Description,
 			}
 			toolEntry := serverproto.ToolEntry{}
 			if toolEntry.Metadata, err = conversion.BuildSchema(sig); err != nil {
