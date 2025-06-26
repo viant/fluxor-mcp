@@ -8,7 +8,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/stretchr/testify v1.10.0
 	github.com/viant/afs v1.26.2
-	github.com/viant/fluxor v0.1.14
+	github.com/viant/fluxor v0.1.19-0.20250626020735-f070ec16b098
 	github.com/viant/jsonrpc v0.7.2
 	github.com/viant/mcp v0.4.3
 	github.com/viant/mcp-protocol v0.4.4
@@ -35,6 +35,7 @@ require (
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/sourcegraph/go-diff v0.7.0 // indirect
 	github.com/viant/bindly v0.1.0 // indirect
 	github.com/viant/gosh v0.2.1 // indirect
 	github.com/viant/parsly v0.3.3 // indirect
