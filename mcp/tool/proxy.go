@@ -122,7 +122,7 @@ func (p *Proxy) Method(name string) (types.Executable, error) {
 		args, _ := conv.ToMap(input)
 		res, err := p.client.CallTool(ctx, &mcpschema.CallToolRequestParams{
 			Name:      tool.Name,
-			Arguments: mcpschema.CallToolRequestParamsArguments(args),
+			Arguments: args,
 		})
 		if err != nil {
 			return fmt.Errorf("call tool %q: %w", tool.Name, err)

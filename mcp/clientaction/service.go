@@ -55,17 +55,6 @@ func New(cli protocolclient.Operations) *Service {
 			desc: "Elicit content using the serverʼs elicitation endpoint",
 		},
 		{
-			methodConst: mcpschema.MethodInteractionCreate,
-			name:        "createUserInteraction",
-			in:          reflect.TypeOf(&mcpschema.CreateUserInteractionRequestParams{}),
-			out:         reflect.TypeOf(&mcpschema.CreateUserInteractionResult{}),
-			call: func(ctx context.Context, c protocolclient.Operations, in interface{}) (interface{}, *jsonrpc.Error) {
-				p, _ := in.(*mcpschema.CreateUserInteractionRequestParams)
-				return c.CreateUserInteraction(ctx, &jsonrpc.TypedRequest[*mcpschema.CreateUserInteractionRequest]{Request: &mcpschema.CreateUserInteractionRequest{Params: *p}})
-			},
-			desc: "Create a user interaction on the server",
-		},
-		{
 			methodConst: mcpschema.MethodRootsList,
 			name:        "listRoots",
 			in:          reflect.TypeOf(&mcpschema.ListRootsRequestParams{}),

@@ -25,12 +25,16 @@ func (d *defaultClient) Init(ctx context.Context, capabilities *mcpschema.Client
 	if capabilities.Roots != nil {
 		d.implements[mcpschema.MethodRootsList] = true
 	}
-	if capabilities.UserInteraction != nil {
-		d.implements[mcpschema.MethodInteractionCreate] = true
-	}
 	if capabilities.Sampling != nil {
 		d.implements[mcpschema.MethodSamplingCreateMessage] = true
 	}
+}
+func (*defaultClient) LastRequestID() jsonrpc.RequestId {
+	return 0
+}
+
+func (*defaultClient) NextRequestID() jsonrpc.RequestId {
+	return 0
 }
 
 func (*defaultClient) OnNotification(context.Context, *jsonrpc.Notification) {}
@@ -48,9 +52,6 @@ func (*defaultClient) CreateMessage(context.Context, *jsonrpc.TypedRequest[*mcps
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
 func (*defaultClient) Elicit(context.Context, *jsonrpc.TypedRequest[*mcpschema.ElicitRequest]) (*mcpschema.ElicitResult, *jsonrpc.Error) {
-	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
-}
-func (*defaultClient) CreateUserInteraction(context.Context, *jsonrpc.TypedRequest[*mcpschema.CreateUserInteractionRequest]) (*mcpschema.CreateUserInteractionResult, *jsonrpc.Error) {
 	return nil, jsonrpc.NewError(jsonrpc.MethodNotFound, "not implemented", nil)
 }
 
