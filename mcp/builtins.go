@@ -10,20 +10,16 @@ import (
 	nop "github.com/viant/fluxor/service/action/nop"
 	printer "github.com/viant/fluxor/service/action/printer"
 	exec "github.com/viant/fluxor/service/action/system/exec"
-	secret "github.com/viant/fluxor/service/action/system/secret"
-	storage "github.com/viant/fluxor/service/action/system/storage"
 )
 
 // builtinFactories lists all Fluxor action services that can be instantiated
 // without external dependencies.  The key must match the service name exposed
 // by its implementation so that pattern matching is intuitive.
 var builtinFactories = map[string]func() types.Service{
-	"nop":            func() types.Service { return nop.New() },
-	"printer":        func() types.Service { return printer.New() },
-	"system/exec":    func() types.Service { return exec.New() },
-	"system/storage": func() types.Service { return storage.New() },
-	"system/secret":  func() types.Service { return secret.New() },
-	"system/patch":   func() types.Service { return patch.New() },
+	"nop":          func() types.Service { return nop.New() },
+	"printer":      func() types.Service { return printer.New() },
+	"system/exec":  func() types.Service { return exec.New() },
+	"system/patch": func() types.Service { return patch.New() },
 }
 
 // resolveBuiltinServices converts pattern(s) – "*" for all, prefix or exact –
