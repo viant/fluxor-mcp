@@ -47,6 +47,7 @@ type Proxy struct {
 // tool registry. Call `proxy.refresh(ctx)` later if you need to pick up tools
 // added after start‑up.
 func NewProxy(ctx context.Context, name string, cli mcpclient.Interface) (types.Service, error) {
+	name = strings.ReplaceAll(name, "_", "/")
 	p := &Proxy{name: name, client: cli}
 	if err := p.refresh(ctx); err != nil {
 		return nil, err
