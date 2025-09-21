@@ -10,9 +10,11 @@ import (
 	"strings"
 
 	"github.com/viant/fluxor-mcp/internal/conv"
+	mcontext "github.com/viant/fluxor-mcp/mcp/context"
 	"github.com/viant/fluxor-mcp/mcp/tool/conversion"
 	"github.com/viant/fluxor/model/types"
 	mcpschema "github.com/viant/mcp-protocol/schema"
+	"github.com/viant/mcp/client"
 	mcpclient "github.com/viant/mcp/client"
 )
 
@@ -121,10 +123,19 @@ func (p *Proxy) Method(name string) (types.Executable, error) {
 	exec := func(ctx context.Context, input, output interface{}) error {
 		// ---------- invoke remote tool ---------- //
 		args, _ := conv.ToMap(input)
-		res, err := p.client.CallTool(ctx, &mcpschema.CallToolRequestParams{
+		var options []client.RequestOption
+
+		aClient := p.client
+		if value, ok := mcontext.Client(ctx); ok {
+			aClient = value
+		}
+		if value, ok := mcontext.AuthToken(ctx); ok {
+			options = append(options, client.WithAuthToken(value))
+		}
+		res, err := aClient.CallTool(ctx, &mcpschema.CallToolRequestParams{
 			Name:      tool.Name,
 			Arguments: args,
-		})
+		}, options...)
 		if err != nil {
 			return fmt.Errorf("call tool %q: %w", tool.Name, err)
 		}
