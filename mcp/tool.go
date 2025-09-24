@@ -13,6 +13,7 @@ import (
 	"github.com/viant/jsonrpc"
 	mcpschema "github.com/viant/mcp-protocol/schema"
 	serverproto "github.com/viant/mcp-protocol/server"
+	"reflect"
 	"strings"
 	"time"
 )
@@ -25,6 +26,10 @@ func (s *Service) Tools() serverproto.Tools {
 	for _, name := range actions.Services() {
 		service := actions.Lookup(name)
 		for _, method := range service.Methods() {
+			if isInternalSignature(method) {
+				// hide internally flagged methods from MCP tool export
+				continue
+			}
 			toolName := tool.NewName(name, method.Name)
 			aTool, err := s.LookupTool(toolName.String())
 			if err != nil {
@@ -76,6 +81,10 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 	var err error
 	for _, method := range service.Methods() {
 		if method.Name == toolMethod {
+			if isInternalSignature(method) {
+				// treat internal methods as non-existent for MCP exposure
+				return nil, fmt.Errorf("unknown tool: %v", toolName)
+			}
 			sig := &types.Signature{
 				Name:        name,
 				Input:       method.Input,
@@ -115,6 +124,24 @@ func (s *Service) LookupTool(name string) (*serverproto.ToolEntry, error) {
 		}
 	}
 	return nil, fmt.Errorf("unknown tool: %v", toolName)
+}
+
+// isInternalSignature returns true when the provided signature has an exported
+// boolean field named "Internal" set to true. This uses reflection so that we
+// remain compatible with fluxor versions that do not define the field.
+func isInternalSignature(sig types.Signature) bool {
+	v := reflect.ValueOf(sig)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	f := v.FieldByName("Internal")
+	if !f.IsValid() || f.Kind() != reflect.Bool {
+		return false
+	}
+	return f.Bool()
 }
 
 // ExecuteTool invokes a registered fluxor action with the supplied arguments.

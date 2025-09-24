@@ -96,12 +96,14 @@ func (p *Proxy) refresh(ctx context.Context) error {
 			outT = reflect.StructOf([]reflect.StructField{}) // empty object
 		}
 
-		sigs = append(sigs, types.Signature{
+		sig := types.Signature{
 			Name:        tool.Name,
 			Description: conv.Dereference[string](tool.Description),
 			Input:       inT,
 			Output:      outT,
-		})
+		}
+		setSigInternal(&sig)
+		sigs = append(sigs, sig)
 	}
 	p.sigs = sigs
 	return nil
@@ -151,6 +153,16 @@ func (p *Proxy) Method(name string) (types.Executable, error) {
 	}
 
 	return exec, nil
+}
+
+// setSigInternal sets Signature.Internal = true if the field exists on the
+// current fluxor version. Uses reflection for backwards compatibility.
+func setSigInternal(sig *types.Signature) {
+	v := reflect.ValueOf(sig).Elem()
+	f := v.FieldByName("Internal")
+	if f.IsValid() && f.CanSet() && f.Kind() == reflect.Bool {
+		f.SetBool(true)
+	}
 }
 
 // -----------------------------------------------------------------------------

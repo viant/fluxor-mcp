@@ -119,12 +119,17 @@ func New(cli protocolclient.Operations) *Service {
 		}
 
 		s.executors[opCopy.name] = exec
-		s.sigs = append(s.sigs, types.Signature{
+
+		sig := types.Signature{
 			Name:        opCopy.name,
 			Description: opCopy.desc,
 			Input:       opCopy.in,
 			Output:      opCopy.out,
-		})
+		}
+		// Mark MCP client operations as internal if the underlying fluxor
+		// Signature struct supports an exported bool field `Internal`.
+		setInternalFlag(&sig)
+		s.sigs = append(s.sigs, sig)
 	}
 
 	return s
@@ -143,4 +148,13 @@ func (s *Service) Method(name string) (types.Executable, error) {
 		return exec, nil
 	}
 	return nil, types.NewMethodNotFoundError(name)
+}
+
+// setInternalFlag sets Signature.Internal = true if the field exists.
+func setInternalFlag(sig *types.Signature) {
+	v := reflect.ValueOf(sig).Elem()
+	f := v.FieldByName("Internal")
+	if f.IsValid() && f.CanSet() && f.Kind() == reflect.Bool {
+		f.SetBool(true)
+	}
 }
