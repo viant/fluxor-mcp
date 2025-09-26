@@ -3,6 +3,7 @@ package mcp
 import (
 	"context"
 	"fmt"
+
 	"github.com/viant/afs"
 	"github.com/viant/fluxor-mcp/mcp/tool"
 	"github.com/viant/mcp"
@@ -14,6 +15,7 @@ import (
 // configuration, introspects the available tools and turns each of them into a
 // Fluxor service whose methods proxy the remote calls.
 func (s *Service) registerExternalActions(ctx context.Context) error {
+
 	mcpConfigs, err := s.loadMCPClientConfig(ctx)
 	if err != nil {
 		return err
