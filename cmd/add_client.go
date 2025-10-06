@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/viant/mcp"
+	mcpconfig "github.com/viant/fluxor-mcp/mcp/config"
+	mcp "github.com/viant/mcp"
 )
 
 // AddClientCmd dynamically imports tools exposed by a remote MCP service and
@@ -25,14 +26,14 @@ func (c *AddClientCmd) Execute(_ []string) error {
 		return err
 	}
 
-	opts := &mcp.ClientOptions{
+	opts := &mcpconfig.MCPClient{ClientOptions: &mcp.ClientOptions{
 		Name:    c.Name,
 		Version: c.Version,
 		Transport: mcp.ClientTransport{
 			Type:                "sse",
 			ClientTransportHTTP: mcp.ClientTransportHTTP{URL: c.Address},
 		},
-	}
+	}}
 
 	if err := svc.RegisterMcpClientTools(context.Background(), opts); err != nil {
 		return err

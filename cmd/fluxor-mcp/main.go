@@ -6,5 +6,6 @@ import (
 )
 
 func main() {
+
 	cmd.Run(os.Args[1:])
 }

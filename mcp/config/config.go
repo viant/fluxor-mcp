@@ -9,7 +9,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/viant/mcp"
+	mcp "github.com/viant/mcp"
 )
 
 type Group[T any] struct {
@@ -22,8 +22,8 @@ type Config struct {
 	Options        []fluxor.Option
 	Extensions     []types.Service
 	ExtensionTypes []*x.Type
-	Builtins       []string                   `yaml:"builtins,omitempty" json:"builtins,omitempty"`
-	MCP            *Group[*mcp.ClientOptions] `yaml:"mcp,omitempty" json:"mcp,omitempty"`
+	Builtins       []string           `yaml:"builtins,omitempty" json:"builtins,omitempty"`
+	MCP            *Group[*MCPClient] `yaml:"mcp,omitempty" json:"mcp,omitempty"`
 }
 
 func Load(path string) (*Config, error) {
@@ -41,4 +41,23 @@ func Load(path string) (*Config, error) {
 func (c *Config) Validate() error {
 	// ServicePackages are optional now.
 	return nil
+}
+
+// MCPClient augments mcp.ClientOptions with optional description overrides
+// for discovery tools (resources and prompts). The map keys should use
+// path-style identifiers relative to the discovery namespace, e.g.:
+//   - "resources/list"
+//   - "resources/read"
+//   - "resources/templates/list"
+//   - "prompts/list"
+//   - "prompts/get"
+//
+// When set, these override the default method descriptions.
+type MCPClient struct {
+	*mcp.ClientOptions `yaml:",inline" json:",inline"`
+	Descriptions       map[string]string `yaml:"descriptions,omitempty" json:"descriptions,omitempty"`
+	// Metadata is an arbitrary key/value map injected into discovery responses
+	// under meta["metadata"]. This can be used by MCP hosts to receive
+	// any side-channel information.
+	Metadata map[string]interface{} `yaml:"metadata,omitempty" json:"metadata,omitempty"`
 }

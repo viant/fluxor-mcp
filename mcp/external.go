@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/viant/afs"
+	"github.com/viant/fluxor-mcp/mcp/config"
+	"github.com/viant/fluxor-mcp/mcp/discovery"
 	"github.com/viant/fluxor-mcp/mcp/tool"
 	"github.com/viant/mcp"
 	protocolclient "github.com/viant/mcp-protocol/client"
@@ -27,7 +29,7 @@ func (s *Service) registerExternalActions(ctx context.Context) error {
 
 		// Ensure required defaults are applied so that name/version are never empty.
 		if err = s.RegisterMcpClientTools(ctx, mcpConfig); err != nil {
-			if err = s.mcpErrorHandler(mcpConfig, err); err != nil {
+			if err = s.mcpErrorHandler(mcpConfig.ClientOptions, err); err != nil {
 				return err
 			}
 		}
@@ -36,13 +38,13 @@ func (s *Service) registerExternalActions(ctx context.Context) error {
 }
 
 // RegisterMcpClientTools register Server clientHandler
-func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.ClientOptions) error {
+func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *config.MCPClient) error {
 	actions := s.Workflow.Service.Actions()
 	mcpConfig.Init()
 
 	impl := s.ClientHandler()
 
-	cli, err := mcp.NewClient(impl, mcpConfig)
+	cli, err := mcp.NewClient(impl, mcpConfig.ClientOptions)
 	if err != nil {
 		return fmt.Errorf("create mcp clientHandler %q: %w", mcpConfig.Name, err)
 	}
@@ -53,6 +55,16 @@ func (s *Service) RegisterMcpClientTools(ctx context.Context, mcpConfig *mcp.Cli
 	}
 
 	if err := actions.Register(mcpToolService); err != nil {
+		return err
+	}
+	// Register discovery services (resources, prompts) with dynamic prefix.
+	if disc, err := discovery.New(ctx, mcpConfig, cli); err == nil {
+		for _, svc := range disc {
+			if err := actions.Register(svc); err != nil {
+				return err
+			}
+		}
+	} else {
 		return err
 	}
 	return nil
@@ -68,7 +80,7 @@ func (s *Service) ClientHandler() protocolclient.Handler {
 
 // loadMCPClientConfig resolves Server clientHandler options either embedded directly in
 // the config or referenced via URL.
-func (s *Service) loadMCPClientConfig(ctx context.Context) ([]*mcp.ClientOptions, error) {
+func (s *Service) loadMCPClientConfig(ctx context.Context) ([]*config.MCPClient, error) {
 	if s.config == nil || s.config.MCP == nil {
 		return nil, nil
 	}
@@ -88,7 +100,7 @@ func (s *Service) loadMCPClientConfig(ctx context.Context) ([]*mcp.ClientOptions
 		return nil, fmt.Errorf("download externals config %q: %w", s.config.MCP.URL, err)
 	}
 
-	var out []*mcp.ClientOptions
+	var out []*config.MCPClient
 	if err := yaml.Unmarshal(data, &out); err != nil {
 		return nil, fmt.Errorf("parse externals config %q: %w", s.config.MCP.URL, err)
 	}
