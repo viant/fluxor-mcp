@@ -139,8 +139,9 @@ func (s *Service) ExecuteTool(ctx context.Context, name string, args map[string]
 	}
 
 	found := false
+	methodName := toolName.Method()
 	for _, sig := range svc.Methods() {
-		if sig.Name == toolName.Method() {
+		if sig.Name == methodName {
 			found = true
 			break
 		}
@@ -151,7 +152,7 @@ func (s *Service) ExecuteTool(ctx context.Context, name string, args map[string]
 
 	exec, err := execution.NewAtHocExecution(toolName.Service(), toolName.Method(), args)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create at-hoc execution: %v", err)
 	}
 
 	waitFn, err := s.Runtime.ScheduleExecution(ctx, exec)

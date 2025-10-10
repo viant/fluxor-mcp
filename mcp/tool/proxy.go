@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"sync"
 
 	"github.com/viant/fluxor-mcp/internal/conv"
 	mcontext "github.com/viant/fluxor-mcp/mcp/context"
@@ -43,6 +44,7 @@ type Proxy struct {
 	client  mcpclient.Interface
 	methods map[string]*mcpschema.Tool
 	sigs    types.Signatures
+	sync.Mutex
 }
 
 // NewProxy creates a new tool proxy and immediately discovers the server's
@@ -59,6 +61,8 @@ func NewProxy(ctx context.Context, name string, cli mcpclient.Interface) (types.
 
 // refresh (re)hydrates the local tool registry.
 func (p *Proxy) refresh(ctx context.Context) error {
+	p.Lock()
+	defer p.Unlock()
 	var (
 		tools  []mcpschema.Tool
 		cursor *string
@@ -116,6 +120,9 @@ func (p *Proxy) Methods() types.Signatures { return p.sigs }
 
 // Method returns an executable for the requested tool.
 func (p *Proxy) Method(name string) (types.Executable, error) {
+	if len(p.methods) == 0 {
+		_ = p.refresh(context.Background())
+	}
 	tool, ok := p.methods[name]
 	if !ok {
 		return nil, types.NewMethodNotFoundError(name)
