@@ -27,6 +27,17 @@ func echoHandler(_ context.Context, req *mcpschema.CallToolRequest) (*mcpschema.
 	}}}, nil
 }
 
+// emptyHandler returns an empty content array to simulate tools that
+// respond with no data.
+func emptyHandler(_ context.Context, _ *mcpschema.CallToolRequest) (*mcpschema.CallToolResult, *jsonrpc.Error) {
+	return &mcpschema.CallToolResult{Content: nil}, nil
+}
+
+// structuredHandler returns only structuredContent.
+func structuredHandler(_ context.Context, _ *mcpschema.CallToolRequest) (*mcpschema.CallToolResult, *jsonrpc.Error) {
+	return &mcpschema.CallToolResult{StructuredContent: map[string]interface{}{"message": "hello-structured"}}, nil
+}
+
 // newTestServer spins up an in-process Server server exposing the echo tool and
 // returns a client connected to it.
 func newTestServer(t *testing.T) mcpclient.Interface {
@@ -53,6 +64,14 @@ func newTestServer(t *testing.T) mcpclient.Interface {
 		}
 
 		impl.RegisterToolWithSchema("echo", "echo message back", inputSchema, outputSchema, echoHandler)
+
+		// Register a tool that returns no content.
+		emptyInput := mcpschema.ToolInputSchema{Type: "object"}
+		emptyOutput := &mcpschema.ToolOutputSchema{Type: "object"}
+		impl.RegisterToolWithSchema("empty", "returns empty content", emptyInput, emptyOutput, emptyHandler)
+
+		// Register a tool that returns only structured content.
+		impl.RegisterToolWithSchema("structured", "returns structured content only", emptyInput, emptyOutput, structuredHandler)
 		return impl, nil
 	}
 
@@ -99,4 +118,52 @@ func TestRemoteToolService_Echo(t *testing.T) {
 	err = exec(ctx, map[string]interface{}{"message": "hello"}, &response)
 	assert.NoError(t, err)
 	assert.EqualValues(t, "hello", response)
+}
+
+func TestRemoteToolService_EmptyContent_NoPanic(t *testing.T) {
+	ctx := context.Background()
+	cli := newTestServer(t)
+
+	svc, err := coretool.NewProxy(ctx, "test", cli)
+	if err != nil {
+		t.Fatalf("failed to create remote service: %v", err)
+	}
+
+	exec, err := svc.Method("empty")
+	if err != nil {
+		t.Fatalf("Method lookup failed: %v", err)
+	}
+
+	// Ask for a structured output; with empty content this should return
+	// a descriptive error rather than panic.
+	var dst struct{ Message string }
+	err = exec(ctx, map[string]interface{}{}, &dst)
+	if err == nil {
+		t.Fatalf("expected error for empty content, got nil")
+	}
+}
+
+func TestRemoteToolService_StructuredContent(t *testing.T) {
+	ctx := context.Background()
+	cli := newTestServer(t)
+
+	svc, err := coretool.NewProxy(ctx, "test", cli)
+	if err != nil {
+		t.Fatalf("failed to create remote service: %v", err)
+	}
+
+	exec, err := svc.Method("structured")
+	if err != nil {
+		t.Fatalf("Method lookup failed: %v", err)
+	}
+
+	// Decode into a typed struct
+	var dst struct{ Message string }
+	err = exec(ctx, map[string]interface{}{}, &dst)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if dst.Message != "hello-structured" {
+		t.Fatalf("unexpected message: %s", dst.Message)
+	}
 }

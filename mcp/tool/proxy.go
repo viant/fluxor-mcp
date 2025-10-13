@@ -155,7 +155,7 @@ func (p *Proxy) Method(name string) (types.Executable, error) {
 		if output == nil {
 			return nil
 		}
-		return decode(output, classify(res.Content))
+		return decode(output, classify(res.Content, res.StructuredContent))
 	}
 
 	return exec, nil
@@ -172,6 +172,7 @@ type resultBuckets struct {
 	text         []string                              // human‑readable
 	imagesBase64 []string                              // inline base64 images (image/*)
 	others       []mcpschema.CallToolResultContentElem // anything else
+	structured   map[string]interface{}                // structuredContent object
 }
 
 // classify groups `CallToolResultContentElem` items by (type, MIME). The MCP
@@ -181,8 +182,16 @@ type resultBuckets struct {
 //   - "resource"  – external assets referenced by URI / ID
 //
 // Older servers may still send "jsondata"; we treat it as an alias of "data".
-func classify(items []mcpschema.CallToolResultContentElem) resultBuckets {
+func classify(items []mcpschema.CallToolResultContentElem, structured map[string]interface{}) resultBuckets {
 	var b resultBuckets
+	// Attach structured content (if any) and also expose it as JSON for
+	// string/[]byte targets without losing the original object for typed decodes.
+	if structured != nil {
+		b.structured = structured
+		if data, err := json.Marshal(structured); err == nil {
+			b.json = append(b.json, string(data))
+		}
+	}
 	for _, it := range items {
 		mime := strings.ToLower(it.MimeType)
 		itemType := strings.ToLower(it.Type) // normalise for comparison
@@ -232,6 +241,9 @@ func decode(out interface{}, b resultBuckets) error {
 	case *interface{}:
 		// Flexible catch‑all – pick the richest content available.
 		switch {
+		case b.structured != nil:
+			*v = b.structured
+			return nil
 		case len(b.json) > 0:
 			return json.Unmarshal([]byte(b.json[0]), v)
 		case len(b.imagesBase64) > 0:
@@ -255,6 +267,11 @@ func decode(out interface{}, b resultBuckets) error {
 			*v = strings.Join(b.xml, "")
 		case len(b.csv) > 0:
 			*v = strings.Join(b.csv, "")
+		case b.structured != nil:
+			if data, err := json.Marshal(b.structured); err == nil {
+				*v = string(data)
+				return nil
+			}
 		default:
 			*v = ""
 		}
@@ -277,14 +294,31 @@ func decode(out interface{}, b resultBuckets) error {
 			*v = []byte(b.xml[0])
 		case len(b.csv) > 0:
 			*v = []byte(b.csv[0])
+		case b.structured != nil:
+			if data, err := json.Marshal(b.structured); err == nil {
+				*v = data
+				return nil
+			}
 		default:
 			return errors.New("no binary‑compatible payload found")
 		}
 	}
-	if len(b.json) == 0 && len(b.text) > 0 {
+	// For any other output type, prefer structuredContent → JSON → text.
+	if b.structured != nil {
+		if data, err := json.Marshal(b.structured); err == nil {
+			return json.Unmarshal(data, out)
+		}
+
+	}
+	if len(b.json) > 0 {
+		return json.Unmarshal([]byte(b.json[0]), out)
+	}
+	if len(b.text) > 0 {
 		return json.Unmarshal([]byte(b.text[0]), out)
 	}
-	return json.Unmarshal([]byte(b.json[0]), out)
+	// No compatible payload to decode into the provided output type.
+	// XML/CSV are only supported for string/[]byte targets above.
+	return errors.New("no compatible payload found to decode into output")
 }
 
 // toolError converts an error‑flagged MCP result into Go error.
